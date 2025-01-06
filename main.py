@@ -19,6 +19,7 @@ def configure_chrome_options():
     chrome_options.add_argument("--ignore-ssl-errors")
     chrome_options.add_argument("--disable-web-security")
     chrome_options.add_argument("--allow-insecure-localhost")
+    chrome_options.add_argument("--headless")
     return chrome_options
 
 # Set up WebDriver
@@ -172,7 +173,7 @@ def main():
         search_box.send_keys(Keys.ENTER)
 
         time.sleep(5)
-        # scroll_until_class_found(driver, "PbZDve")
+        scroll_until_class_found(driver, "PbZDve")
         
         
         now = datetime.now()
