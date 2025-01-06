@@ -54,7 +54,7 @@ jobs:
                   unzip -o chromedriver_linux64.zip -d driver/
                   pwd
                   ls -l driver/
-                  chmod 755 driver/
+                  chmod -R 755 driver/
                   ls -l driver/
                   ls -l
               else
