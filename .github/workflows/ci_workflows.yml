@@ -29,34 +29,41 @@ jobs:
 
         # Step 4: Download ChromeDriver
         - name: Install Chrome and ChromeDriver
-          run: |
-              sudo apt-get update
-              sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
+          run: | 
+                sudo apt-get update
+                sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
 
-              # Install Google Chrome
-              sudo apt-get install -y google-chrome-stable || true
+                # Install Google Chrome
+                sudo apt-get install -y google-chrome-stable || true
 
-              # Determine Chrome version
-              CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-              echo "Installed Chrome version: $CHROME_VERSION"
+                # Determine installed Chrome version
+                CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+' | head -1)
+                if [ -z "$CHROME_VERSION" ]; then
+                    echo "Google Chrome installation failed or not found."
+                    exit 1
+                fi
+                echo "Installed Chrome version: $CHROME_VERSION"
 
-              # Fetch ChromeDriver version compatible with installed Chrome
-              DRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}" || echo "")
+                # Fetch compatible ChromeDriver version
+                DRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}")
+                if [ -z "$DRIVER_VERSION" ]; then
+                    echo "Failed to fetch ChromeDriver version for Chrome $CHROME_VERSION. Falling back to latest ChromeDriver."
+                    DRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
+                fi
 
-              if [ -z "$DRIVER_VERSION" ]; then
-                  echo "Failed to fetch ChromeDriver version for Chrome $CHROME_VERSION. Falling back to latest ChromeDriver."
-                  DRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE" || echo "")
-              fi
+                if [ -n "$DRIVER_VERSION" ]; then
+                    echo "Using ChromeDriver version: $DRIVER_VERSION"
+                    wget -N https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip
+                    unzip -o chromedriver_linux64.zip -d driver/
+                    chmod +x driver/chromedriver
+                else
+                    echo "Unable to fetch any ChromeDriver version. Exiting."
+                    exit 1
+                fi
 
-              if [ -n "$DRIVER_VERSION" ]; then
-                  echo "Using ChromeDriver version: $DRIVER_VERSION"
-                  wget -N https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip
-                  unzip -o chromedriver_linux64.zip -d driver/
-                  chmod +x driver/chromedriver
-              else
-                  echo "Unable to fetch any ChromeDriver version. Exiting."
-                  exit 1
-              fi
+                # Verify ChromeDriver installation
+                ./driver/chromedriver --version
+
 
         # Step 5: Run Python script
         - name: Run script
