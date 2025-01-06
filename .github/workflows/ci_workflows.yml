@@ -32,21 +32,29 @@ jobs:
           run: |
               sudo apt-get update
               sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
-              
-              # Install or update Google Chrome (ignore errors if it's already installed)
+
+              # Install Google Chrome
               sudo apt-get install -y google-chrome-stable || true
 
-              # Get latest ChromeDriver version
-              CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+.[0-9]+.[0-9]+')
-              DRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION" || echo "0")
+              # Determine Chrome version
+              CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+              echo "Installed Chrome version: $CHROME_VERSION"
 
-              if [ "$DRIVER_VERSION" != "0" ]; then
-                  # Download ChromeDriver
+              # Fetch ChromeDriver version compatible with installed Chrome
+              DRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}" || echo "")
+
+              if [ -z "$DRIVER_VERSION" ]; then
+                  echo "Failed to fetch ChromeDriver version for Chrome $CHROME_VERSION. Falling back to latest ChromeDriver."
+                  DRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE" || echo "")
+              fi
+
+              if [ -n "$DRIVER_VERSION" ]; then
+                  echo "Using ChromeDriver version: $DRIVER_VERSION"
                   wget -N https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip
                   unzip -o chromedriver_linux64.zip -d driver/
                   chmod +x driver/chromedriver
               else
-                  echo "Failed to fetch ChromeDriver version. Ensure Chrome version is supported."
+                  echo "Unable to fetch any ChromeDriver version. Exiting."
                   exit 1
               fi
 
