@@ -55,7 +55,8 @@ jobs:
                   pwd
                   ls -l driver/
                   chmod 755 driver/chromedriver
-                  ll
+                  ls -l driver/
+                  ls -l
               else
                   echo "Unable to fetch any ChromeDriver version. Exiting."
                   exit 1
