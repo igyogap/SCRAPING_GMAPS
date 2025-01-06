@@ -52,11 +52,7 @@ jobs:
                   echo "Using ChromeDriver version: $DRIVER_VERSION"
                   wget -N https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip
                   unzip -o chromedriver_linux64.zip -d driver/
-                  pwd
-                  ls -l driver/
                   chmod -R 755 driver/
-                  ls -l driver/
-                  ls -l
               else
                   echo "Unable to fetch any ChromeDriver version. Exiting."
                   exit 1

@@ -24,7 +24,7 @@ def configure_chrome_options():
 
 # Set up WebDriver
 def setup_driver():
-    service = Service("driver/chromedriver.exe")  
+    service = Service("driver/chromedriver")  
     chrome_options = configure_chrome_options()
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.maximize_window()
