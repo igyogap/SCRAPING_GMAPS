@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import re
+import sys
 from datetime import datetime
 
 # Configure Chrome options
@@ -24,7 +25,7 @@ def configure_chrome_options():
 
 # Set up WebDriver
 def setup_driver():
-    service = Service("driver/chromedriver")  
+    service = Service("driver/chromedriver.exe")  
     chrome_options = configure_chrome_options()
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.maximize_window()
@@ -35,14 +36,14 @@ def scroll_results(driver):
     driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", element_scroll)
     result = driver.find_element(By.CLASS_NAME, "lMbq3e")
     driver.execute_script("arguments[0].scrollIntoView(true);", result)
-    time.sleep(3)
+    time.sleep(1)
                                          
 def scroll_until_class_found(driver, target_class_name):
     element_to_scroll = driver.find_element(By.XPATH, "//*[@id='QA0Szd']/div/div/div[1]/div[2]/div/div[1]/div/div/div[1]/div[1]")
 
     while True:
         driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", element_to_scroll)
-        time.sleep(5)
+        time.sleep(3)
 
         try:
             text = driver.find_element(By.CLASS_NAME, target_class_name).text
@@ -57,7 +58,7 @@ def extract_phone_numbers(elements):
     for element in elements:
         text = element.text.strip()
         if text:
-            time.sleep(1)  # Pause for 1 second (if needed)
+            # time.sleep(1)  # Pause for 1 second (if needed)
             phone_numbers.append(text)
     return phone_numbers
 
@@ -73,6 +74,7 @@ def find_and_format_phone_number(phone_numbers, pattern=r'\d{4}-\d{4}-\d{4}'):
 
 def process_search_results(driver, processed_names, data_list):
     results = driver.find_elements(By.CLASS_NAME, "Nv2PK")
+    counting = 0
     print(f"Found {len(results)} results.")
     
     for result in results:
@@ -81,12 +83,11 @@ def process_search_results(driver, processed_names, data_list):
             if name in processed_names:
                 print("Duplicate found, skipping...")
             processed_names.add(name)
-            print(f"Name: {name}")
-
+            counting += 1
             try:
                 result.click()
                 scroll_results(driver)
-                time.sleep(2)
+                # time.sleep(1)
 
                 address = driver.find_element(By.CLASS_NAME, "fdkmkc").text
                 find_phone_classes = driver.find_elements(By.CLASS_NAME, "Io6YTe")
@@ -95,20 +96,19 @@ def process_search_results(driver, processed_names, data_list):
                 phone = phone if phone else 'Not available'
                 address = address if address else 'Not available'
                 
-                print(f"Address: {address if address else 'Not available'}")
-                print(f"Phone: {phone if phone else 'Not available'}")
-                print("-" * 50)  
+                # print(f"Address: {address if address else 'Not available'}")
+                # print(f"Phone: {phone if phone else 'Not available'}")
+                # print("-" * 50)  
 
                 data_list.append([name, address, phone])
 
             except:
-                print("Scrolling to bring the result to the top...")
                 driver.execute_script("arguments[0].scrollIntoView(true);", result)
                 time.sleep(1)
                 
                 result.click()
                 scroll_results(driver)
-                time.sleep(1)
+                # time.sleep(1)
                 
                 address = driver.find_element(By.CLASS_NAME, "fdkmkc").text
                 find_phone_classes = driver.find_elements(By.CLASS_NAME, "Io6YTe")
@@ -117,13 +117,17 @@ def process_search_results(driver, processed_names, data_list):
                 phone = phone if phone else 'Not available'
                 address = address if address else 'Not available'
                 
-                print(f"Address: {address if address else 'Not available'}")
-                print(f"Phone: {phone if phone else 'Not available'}")
-                print("-" * 50)   
+                # print(f"Address: {address if address else 'Not available'}")
+                # print(f"Phone: {phone if phone else 'Not available'}")
+                # print("-" * 50)   
+                
 
                 data_list.append([name, address, phone])
-
-            time.sleep(2)
+            # print(f"Processed success {counting} results.")
+            progress = counting / len(results) * 100
+            sys.stdout.write(f"\rProcessed {progress:.2f}%")
+            sys.stdout.flush()
+            # time.sleep(1)
 
         except Exception as e:
             print(f"Error processing result: {e}")
@@ -173,7 +177,7 @@ def main():
         search_box.send_keys(Keys.ENTER)
 
         time.sleep(5)
-        scroll_until_class_found(driver, "PbZDve")
+        # scroll_until_class_found(driver, "PbZDve")
         
         
         now = datetime.now()
